@@ -4,6 +4,8 @@ Analisis komprehensif data rekrutmen IT di Indonesia menggunakan tiga dataset ut
 
 **Project:** Data Science Capstone — DBS Foundation 2026
 
+**Live Demo:** [dashboard-itcareermatch.streamlit.app](https://dashboard-itcareermatch.streamlit.app/)
+
 ---
 
 ## Daftar Isi
@@ -46,8 +48,8 @@ STREAMLIT DASHBOARD (app.py)
 
 Data Flow:
 data/
-├── Dataset_CV.*          -> @st.cache_data -> load_cv()    -> fig_bq1(), fig_bq5(), fig_bq7()
-├── Dataset_Job.*         -> @st.cache_data -> load_job()   -> fig_bq2(), fig_bq5(), fig_bq9()
+├── Dataset_CV.*          -> @st.cache_data -> load_cv()     -> fig_bq1(), fig_bq5(), fig_bq7()
+├── Dataset_Job.*         -> @st.cache_data -> load_job()    -> fig_bq2(), fig_bq5(), fig_bq9()
 └── Dataset_Glints_Job.*  -> @st.cache_data -> load_glints() -> fig_bq3(), fig_bq4(), fig_bq6(), fig_bq8(), fig_bq10()
 ```
 
@@ -61,7 +63,7 @@ data/
 ## Struktur File
 
 ```
-Dashboard_Streamlit/
+Dashboard_ITCareerMatch/
 ├── README.md
 ├── requirements.txt
 ├── app.py                  # Entry point Streamlit Dashboard
