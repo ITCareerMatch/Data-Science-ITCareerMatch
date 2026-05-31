@@ -241,24 +241,33 @@ def fig_bq4(df_glints: pd.DataFrame, min_listings: int = 5) -> tuple[go.Figure, 
     fig_bar.update_xaxes(tickformat=".0s", dtick=5_000_000, row=1, col=1)
     fig_bar.update_xaxes(tickformat=".0s", dtick=5_000_000, row=1, col=2)
 
-    df_filtered = df_salary[df_salary[GLINTS_ROLE_COL].isin(top10[GLINTS_ROLE_COL].tolist())]
+    # Box plot: gunakan top10, filter outlier ekstrem (> 100 juta) agar terbaca — sama seperti EDA
+    df_box_data = df_salary[
+        df_salary[GLINTS_ROLE_COL].isin(top10[GLINTS_ROLE_COL].tolist()) &
+        (df_salary["salary_median"] <= 100_000_000)
+    ]
     fig_box = px.box(
-        df_filtered,
+        df_box_data,
         x="salary_median",
         y=GLINTS_ROLE_COL,
         orientation="h",
+        points="outliers",
         title="BQ 4 — Rentang Gaji (Box Plot) — Top 10 Peran",
         labels={"salary_median": "Gaji Median (Rp)", GLINTS_ROLE_COL: "Kategori Peran"},
         color=GLINTS_ROLE_COL,
-        color_discrete_sequence=COLOR_SEQ
+        color_discrete_sequence=COLOR_SEQ,
+        category_orders={GLINTS_ROLE_COL: top10[GLINTS_ROLE_COL].tolist()}
     )
-    fig_box.update_layout(template=TEMPLATE, height=560, showlegend=False)
+    fig_box.update_layout(
+        template=TEMPLATE, height=560, showlegend=False,
+        xaxis=dict(tickformat=".2s", title="Gaji Median (Rp)")
+    )
 
     metrics = {
-        "top_role": top10.iloc[0][GLINTS_ROLE_COL] if not top10.empty else "N/A",
-        "top_median": top10.iloc[0]["median_gaji"] if not top10.empty else 0,
-        "bot_role": bot10.iloc[0][GLINTS_ROLE_COL] if not bot10.empty else "N/A",
-        "bot_median": bot10.iloc[0]["median_gaji"] if not bot10.empty else 0,
+        "top_role":   top10.iloc[0][GLINTS_ROLE_COL]  if not top10.empty else "N/A",
+        "top_median": top10.iloc[0]["median_gaji"]    if not top10.empty else 0,
+        "bot_role":   bot10.iloc[0][GLINTS_ROLE_COL]  if not bot10.empty else "N/A",
+        "bot_median": bot10.iloc[0]["median_gaji"]    if not bot10.empty else 0,
     }
     return fig_bar, fig_box, metrics
 
@@ -573,11 +582,13 @@ def fig_bq9(df_job: pd.DataFrame) -> tuple[go.Figure, go.Figure, dict]:
     fig_bar.update_layout(template=TEMPLATE, height=500, showlegend=False)
 
     metrics = {
-        "total":         total,
-        "restricted":    int(restricted),
+        "total":          total,
+        "restricted":     int(restricted),
         "pct_restricted": pct_restricted,
-        "exceeds_20pct": pct_restricted > 20,
-        "top_position":  top_positions.iloc[0]["Posisi"] if not top_positions.empty else "N/A"
+        "exceeds_20pct":  pct_restricted > 20,
+        # top_positions sudah di-sort ascending (untuk chart horizontal bar),
+        # sehingga iloc[-1] adalah posisi dengan jumlah TERBANYAK (paling sering membatasi)
+        "top_position":   top_positions.iloc[-1]["Posisi"] if not top_positions.empty else "N/A"
     }
     return fig_pie, fig_bar, metrics
 
@@ -585,6 +596,8 @@ def fig_bq9(df_job: pd.DataFrame) -> tuple[go.Figure, go.Figure, dict]:
 def fig_bq10(df_glints: pd.DataFrame) -> tuple[go.Figure, go.Figure, dict]:
     """
     BQ 10: Median gaji per sistem kerja untuk 10 kategori terbanyak.
+    Menggunakan kolom GLINTS_WORK_SYS_COL (raw: 'Kerja di kantor'/'Remote/Dari rumah'/'Hybrid')
+    sesuai EDA, lalu memetakan ke label WFO/WFH/Hybrid untuk display.
     Returns: (fig_bar, fig_heat, metrics_dict)
     """
     top10_roles = (
@@ -593,10 +606,13 @@ def fig_bq10(df_glints: pd.DataFrame) -> tuple[go.Figure, go.Figure, dict]:
     df_filtered = df_glints[
         df_glints[GLINTS_ROLE_COL].isin(top10_roles) &
         df_glints["salary_median"].notna()
-    ]
+    ].copy()
+
+    # Gunakan kolom raw sistem_kerja lalu map ke label WFO/WFH/Hybrid — sesuai EDA
+    df_filtered["_ws_label"] = df_filtered[GLINTS_WORK_SYS_COL].map(WORK_SYS_LABELS).fillna(df_filtered[GLINTS_WORK_SYS_COL])
 
     pivot = (
-        df_filtered.groupby([GLINTS_ROLE_COL, "sistem_kerja_label"])["salary_median"]
+        df_filtered.groupby([GLINTS_ROLE_COL, "_ws_label"])["salary_median"]
         .median()
         .reset_index()
     )
@@ -631,10 +647,12 @@ def fig_bq10(df_glints: pd.DataFrame) -> tuple[go.Figure, go.Figure, dict]:
     )
     fig_heat.update_layout(template=TEMPLATE, height=480)
 
-    overall_best = pivot.groupby("Sistem Kerja")["Median Gaji"].mean().idxmax()
+    # overall_best: median per sistem kerja (bukan mean) — sesuai EDA
+    overall_by_ws = df_filtered.groupby("_ws_label")["salary_median"].median().sort_values(ascending=False)
+    overall_best  = overall_by_ws.index[0] if not overall_by_ws.empty else "N/A"
 
     metrics = {
-        "top10_roles":     top10_roles,
+        "top10_roles":      top10_roles,
         "best_work_system": overall_best
     }
     return fig_bar, fig_heat, metrics
