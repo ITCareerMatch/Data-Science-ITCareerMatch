@@ -4,7 +4,7 @@ Analisis komprehensif data rekrutmen IT di Indonesia menggunakan tiga dataset ut
 
 **Project:** Data Science Capstone — DBS Foundation 2026
 
-**Live Demo:** [dashboard-itcareermatch.streamlit.app](https://dashboard-itcareermatch.streamlit.app/)
+**Live Demo:** [dashboard-itcareermatch.streamlit.app](https://dashboard-data-science-itcareermatch.streamlit.app/)
 
 ---
 
