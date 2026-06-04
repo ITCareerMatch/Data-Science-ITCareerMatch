@@ -8,7 +8,7 @@ Folder ini berisi notebook eksperimen **A/B Testing** yang digunakan untuk menge
 
 | File | Deskripsi |
 |------|-----------| 
-| `ITCareerMatch_AB_Testing (2).ipynb` | Notebook utama A/B Testing untuk membandingkan performa dua varian sistem pencocokan kandidat dengan lowongan pekerjaan |
+| `ITCareerMatch_AB_Testing.ipynb` | Notebook utama A/B Testing untuk membandingkan performa dua varian sistem pencocokan kandidat dengan lowongan pekerjaan |
 
 ---
 
